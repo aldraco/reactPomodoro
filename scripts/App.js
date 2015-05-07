@@ -3,63 +3,83 @@ var React = require('react');
 var Pomodoro = React.createClass({
   getInitialState: function() {
     return {
-      userSubmittedTime: 0,
-      time: 10,
-      timerRunning: false,
-      timerCompleted: false
+      seconds: 25*60,
+      minutes: 25,
+      mode: 'work',     // opts: 'work', 'rest'
+      workInterval: 25*60,
+      restInterval: 5*60,
+      defaultWorkTime: 25*60,
+      defaultRestTime: 5*60
     };
   },
 
-  handleInput: function(e) {
-    var value = e.target.value;
-    if (value.match(/\D/)) {
-      console.log('Invalid Input');
+  addTime: function(e) {
+    var selectedTimer = e.target.value;
+    // will be workInterval or restInterval
+    if (selectedTimer === 'rest') {
+      this.setState({restInterval: restInterval + 60});
     } else {
-      this.setState({userSubmittedTime: value, time: value});
-    }
-
+      this.setState({workInterval: workInterval + 60});
+    }  // adds a minute
   },
 
-  handleStart: function() {
-    this.setState({timerRunning: true, timerCompleted: false});
-    this.interval = setInterval(function() {
-      this.setState({time: this.state.time - 1});
-      if (this.state.time <= 0) {
-        clearInterval(this.interval);
-        this.setState({timerCompleted: true, timerRunning: false, time: this.state.userSubmittedTime});
+  subtractTime: function(e) {
+    var selectedTimer = e.target.value;
+    // will be workInterval or restInterval
+    if (selectedTimer === 'rest') {
+      this.setState({restInterval: restInterval - 60});
+    } else {
+      this.setState({workInterval: workInterval - 60});
+    }  // adds a minute
+  },
+
+  handleStart: function(e) {
+    console.log("event is",e);
+    var selectedMode = e.target.value;
+    this.timer = setInterval(function() {
+      this.setState({seconds: this.state.seconds - 1});
+      if (this.state.seconds <= 0) {
+        // when the countdown stops, clear the timer
+        clearInterval(this.timer);
+        // switch modes
+        this.switchModes();
+        this.handleStart();
       }
     }.bind(this), 1000);
   },
 
-  handleStop: function() {
-    clearInterval(this.interval);
-    this.setState({timerRunning: false});
+  switchModes: function() {
+    // there is a toggle key available to switch modes
+    if (this.mode === 'work') {
+      this.setState({mode: 'rest', seconds: this.restInterval});
+
+    } else {
+      this.setState({mode: 'work', seconds: this.workInterval});
+    }
+  },
+  handlePause: function() {
+    clearInterval(this.timer);
   },
 
   handleReset: function() {
-    this.handleStop();
-    this.setState({timerCompleted: false, timerRunning: false, time: this.state.userSubmittedTime});
+    this.handlePause();
+    // resetting brings you back to work mode
+    this.setState({seconds: this.state.defaultWorkTime, mode: 'work'});
   },
 
 
   render: function() {
-    var completed = this.state.timerCompleted ?
-      <h1>Time is up chump</h1> :
-      <h1/>;
 
-    var timeVal = this.state.userSubmittedTime || this.state.time;
+
+    var timeVal = this.state.seconds;
 
     return (
       <div>
-        <input type="text"
-          onChange={this.handleInput}
-          value={timeVal}
-        />{' '}
-        <button onClick={this.handleStart}>Start</button>{' '}
-        <button onClick={this.handleStop}>Stop</button>{' '}
+        <button onClick={this.handleStart}>Start</button>
+        <button onClick={this.handlePause}>Stop</button>
         <button onClick={this.handleReset}>Reset</button>
-        <h1>{this.state.time}</h1>
-        {completed}
+        <h1>{this.state.seconds}</h1>
+
       </div>
     );
   }
