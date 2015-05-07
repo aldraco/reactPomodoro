@@ -1,5 +1,55 @@
 var React = require('react');
 
+var WorkDiv = React.createClass({
+  render: function() {
+    var total = this.props.work;
+    var timerDisplay = (function() {
+      
+      var mins = Math.floor(total/60);
+      var secs = total%60;
+
+      if (secs < 10) {
+        secs = '0' + secs.toString();
+      }
+
+      return <h1>{mins}:{secs}</h1>
+    })();
+
+    return (
+        <div className="workDiv">
+          {timerDisplay}
+        </div>
+            )
+  }
+
+});
+
+var RestDiv = React.createClass({
+  render: function() {
+    var total = this.props.rest;
+    var timerDisplay = (function() {
+      
+      var mins = Math.floor(total/60);
+      var secs = total%60;
+
+      if (secs < 10) {
+        secs = '0' + secs.toString();
+      }
+
+      return <h1>{mins}:{secs}</h1>
+    })();
+
+    return (
+        <div className="restDiv">
+          {timerDisplay}
+        </div>
+            )
+  }
+
+});
+
+
+
 var Pomodoro = React.createClass({
   getInitialState: function() {
     return {
@@ -44,12 +94,11 @@ var Pomodoro = React.createClass({
   },
 
   handleStart: function() {
-    var mode = this.state.mode,
+    var mode =        this.state.mode,
         defaultWork = this.state.defaultWorkTime,
-        defaultRest = this.state.defaultRestTime,
-        workCountDown = this.state.work - 1,
-        restCountDown = this.state.rest - 1;
+        defaultRest = this.state.defaultRestTime;
 
+    this.setState({timerIsActive: true});
 
     if (this.timer) {
       // prevents spastic countdown of multiple intervals
@@ -57,6 +106,8 @@ var Pomodoro = React.createClass({
     }
 
     function countDown(mode) {
+      var workCountDown = this.state.work - 1,
+          restCountDown = this.state.rest - 1;
 
       if (mode==='work') {
         this.setState({work: workCountDown});
@@ -74,8 +125,8 @@ var Pomodoro = React.createClass({
         clearInterval(this.timer);
         delete this.timer;
         
-        this.state.work = (this.state.work === 0)? defaultWork : this.state.work;
-        this.state.rest = (this.state.rest === 0)? defaultRest : this.state.rest;
+        this.state.work = (this.state.work === 0) ? defaultWork : this.state.work;
+        this.state.rest = (this.state.rest === 0) ? defaultRest : this.state.rest;
 
         this.switchModes();
         // automatically starts the timer for the other mode
@@ -86,24 +137,27 @@ var Pomodoro = React.createClass({
 
   switchModes: function() {
     // first pause and delete the current timer
-    this.handlePause();
-    delete this.timer;
 
     // change the mode
-    if (this.state.mode === 'work') {
+    if (this.state.mode == 'work') {
       this.setState({mode: 'rest'});
     } else {
       this.setState({mode: 'work'});
     }
+
+    this.handlePause();
+    delete this.timer;
   },
   handlePause: function() {
     clearInterval(this.timer);
+    //this.setState({timerIsActive: false});
     // does not delete the timer.
   },
 
   handleReset: function() {
     this.handlePause();
-    delete this.timer;
+    delete this.timer; 
+
     // resetting brings you back to work mode
     var defaultWork = 25*60;
     var defaultRest = 5*60;
@@ -126,7 +180,8 @@ var Pomodoro = React.createClass({
         <h2>rest</h2>
         <button onClick={this.addTime} value="rest"> + </button>
         <button onClick={this.subtractTime} value="rest"> - </button>
-        <h1>Work {this.state.work}</h1>
+        <WorkDiv work={this.state.work} />
+        <RestDiv rest={this.state.rest} />
         <h1>Rest {this.state.rest}</h1>
         <h1>Mode: {this.state.mode}</h1>
 
