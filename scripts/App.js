@@ -50,13 +50,13 @@ var Pomodoro = React.createClass({
         workCountDown = this.state.work - 1,
         restCountDown = this.state.rest - 1;
 
+
     if (this.timer) {
       // prevents spastic countdown of multiple intervals
       return;
     }
 
     function countDown(mode) {
-
 
       if (mode==='work') {
         this.setState({work: workCountDown});
